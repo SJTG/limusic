@@ -85,6 +85,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ steps.rel.outputs.tag }}
+          fetch-depth: 0
           persist-credentials: false
 
       # The tag is the contract: the binaries must be built from the source that tag points at, and
