@@ -365,6 +365,8 @@
 			"tabbed_player_hint": "Al activar, la vista del reproductor los muestra como pestañas y los dos botones de la barra alternan entre ellos. Al desactivar, esos botones solo abren los paneles laterales, que permanecen abiertos sobre la vista del reproductor para que puedas ver ambos a la vez.",
 			"artwork_background": "Fondo de la portada",
 			"artwork_background_hint": "Tiñe la vista del reproductor con la portada de la canción, desenfocada. Al desactivar, la deja plana.",
+			"crossfade_audio": "Crossfade de audio",
+			"crossfade_audio_hint": "Sube el volumen progresivamente al inicio de cada nueva canción (~700 ms). Al desactivar, el cambio es instantáneo.",
 			"artwork_accent": "Adaptar colores a la portada",
 			"artwork_accent_hint": "Recolorea la aplicación según la portada de la canción: acento, superficies y bordes, cambiando entre canciones. Al desactivar, mantiene los colores del tema seleccionado.",
 			"reset_theme_hint": "Elimina las personalizaciones de color, redondez y fuente. Mantiene el preajuste.",

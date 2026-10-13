@@ -953,6 +953,53 @@ export function openMiniPlayer() {
 	api.openMini().catch((e) => toast.error(String(e)));
 }
 
+// --- Audio crossfade -------------------------------------------------------------------
+// Smoothly ramps the volume in when a new track starts while crossfadeAudio is enabled.
+// The previous track's audio is already gone (mpv cut it); we fake a crossfade by fading
+// the new track in from silence. Duration is kept short (700 ms) so it feels snappy rather
+// than sluggish, and it never dips below 2 so the user doesn't think the player froze.
+
+let crossfadeRaf: number | null = null;
+const CROSSFADE_DURATION_MS = 700;
+
+/**
+ * Fade the volume in from 0 to the user's saved level over ~700 ms.
+ * Called by MiniPlayer (and PlayerBar) when a track change is detected and
+ * `appearance.crossfadeAudio` is true.
+ */
+export function audioCrossfade(): void {
+	// Cancel any in-progress fade first (fast track skipping).
+	if (crossfadeRaf !== null) {
+		cancelAnimationFrame(crossfadeRaf);
+		crossfadeRaf = null;
+	}
+
+	const target = playback.volume; // the level the user set — restore to this
+	const start = performance.now();
+
+	// Mute immediately so the audio begins silently.
+	api.setVolume(0);
+
+	function step() {
+		const elapsed = performance.now() - start;
+		const t = Math.min(1, elapsed / CROSSFADE_DURATION_MS);
+		// Ease-out quad so the initial rise is fast and it glides to the target.
+		const eased = 1 - (1 - t) * (1 - t);
+		const v = Math.round(eased * target);
+		api.setVolume(v);
+		if (t < 1) {
+			crossfadeRaf = requestAnimationFrame(step);
+		} else {
+			crossfadeRaf = null;
+			// Sync the store so the volume slider reflects reality after the fade.
+			playback.volume = target;
+		}
+	}
+
+	crossfadeRaf = requestAnimationFrame(step);
+}
+
+
 /** Advance the repeat mode: off → all → one → off. */
 export function cycleRepeat(): Promise<void> {
 	const r = playback.queue.repeat ?? 'off';

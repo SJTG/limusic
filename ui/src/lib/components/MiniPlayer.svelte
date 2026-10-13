@@ -38,8 +38,10 @@
 		dragVolume,
 		toggleMute,
 		toggleNowPlayingRating,
-		wheelVolume
+		wheelVolume,
+		audioCrossfade
 	} from '$lib/player.svelte';
+	import { appearance } from '$lib/theme.svelte';
 	import { thumb } from '$lib/thumb';
 	import LyricsView from './LyricsView.svelte';
 	import Marquee from './Marquee.svelte';
@@ -111,6 +113,19 @@
 		seekDrag = null;
 		api.seek(v);
 	}
+
+	// Audio crossfade: watch for track changes and trigger a volume fade when the option is on.
+	// We track the previous videoId to detect real song changes (not just metadata updates).
+	let prevVideoId = $state<string | null | undefined>(playback.now?.videoId);
+	$effect(() => {
+		const currentId = playback.now?.videoId;
+		if (currentId !== prevVideoId) {
+			prevVideoId = currentId;
+			if (appearance.crossfadeAudio) {
+				audioCrossfade();
+			}
+		}
+	});
 </script>
 
 <!-- On the window, not the slider: a range drag that ends with the pointer somewhere else never
@@ -133,7 +148,8 @@
 				<img
 					src={thumb(now.thumbnail, 480)}
 					alt=""
-					in:fade={{ duration: 300 }}
+					in:fade={{ duration: 350, delay: 100 }}
+					out:fade={{ duration: 250 }}
 					class="pointer-events-none absolute inset-y-0 left-0 h-full w-[88px] object-cover"
 					style="mask-image:linear-gradient(to right,#000 0,#000 65%,transparent 100%);-webkit-mask-image:linear-gradient(to right,#000 0,#000 65%,transparent 100%)"
 				/>
@@ -141,6 +157,8 @@
 				<div
 					class="pointer-events-none absolute inset-y-0 left-0 flex w-[88px] items-center justify-center bg-muted text-muted-foreground/50"
 					style="mask-image:linear-gradient(to right,#000 0,#000 65%,transparent 100%);-webkit-mask-image:linear-gradient(to right,#000 0,#000 65%,transparent 100%)"
+					in:fade={{ duration: 350, delay: 100 }}
+					out:fade={{ duration: 250 }}
 				>
 					<HugeiconsIcon icon={MusicNote01Icon} class="h-6 w-6" />
 				</div>
@@ -159,11 +177,19 @@
 		<div class="relative flex min-w-0 flex-1 flex-col justify-center py-2 pl-[96px] pr-2.5">
 			<!-- mr-6 keeps the title clear of the expand button. A margin, not padding: Marquee measures
 			     its box with clientWidth, which counts padding as room to spare. -->
-			<Marquee
-				text={now?.title ?? t('player.not_playing')}
-				class="mr-6 font-heading text-sm font-semibold leading-tight"
-			/>
-			<Marquee text={now?.artists ?? ''} class="text-xs leading-snug text-muted-foreground" />
+			{#key now?.videoId}
+				<div
+					class="contents"
+					in:fade={{ duration: 350, delay: 80 }}
+					out:fade={{ duration: 220 }}
+				>
+					<Marquee
+						text={now?.title ?? t('player.not_playing')}
+						class="mr-6 font-heading text-sm font-semibold leading-tight"
+					/>
+					<Marquee text={now?.artists ?? ''} class="text-xs leading-snug text-muted-foreground" />
+				</div>
+			{/key}
 			<div class="mt-1 flex items-center gap-1">
 				<button class={panelBtn} onclick={() => api.prevTrack()} aria-label={t('a11y.previous')}>
 					<HugeiconsIcon icon={PreviousIcon} class="h-4 w-4" />
@@ -224,7 +250,8 @@
 				<img
 					src={thumb(now.thumbnail, 480)}
 					alt=""
-					in:fade={{ duration: 300 }}
+					in:fade={{ duration: 400, delay: 120 }}
+					out:fade={{ duration: 280 }}
 					class="pointer-events-none absolute inset-y-0 left-0 h-full w-[56%] object-cover"
 					style="mask-image:linear-gradient(to right,#000 0,#000 70%,transparent 100%);-webkit-mask-image:linear-gradient(to right,#000 0,#000 70%,transparent 100%)"
 				/>
@@ -341,13 +368,19 @@
 				{/if}
 			</div>
 
-			<div class="min-w-0 [text-shadow:0_1px_4px_rgb(0_0_0/0.7)]">
-				<Marquee
-					text={now?.title ?? t('player.not_playing')}
-					class="font-heading text-[0.95rem] font-semibold leading-tight text-white"
-				/>
-				<Marquee text={now?.artists ?? ''} class="text-xs leading-snug text-white/75" />
-			</div>
+			{#key now?.videoId}
+				<div
+					class="min-w-0 [text-shadow:0_1px_4px_rgb(0_0_0/0.7)]"
+					in:fade={{ duration: 350, delay: 100 }}
+					out:fade={{ duration: 220 }}
+				>
+					<Marquee
+						text={now?.title ?? t('player.not_playing')}
+						class="font-heading text-[0.95rem] font-semibold leading-tight text-white"
+					/>
+					<Marquee text={now?.artists ?? ''} class="text-xs leading-snug text-white/75" />
+				</div>
+			{/key}
 
 			<div class="flex items-center gap-2">
 				<button class={artBtn} onclick={() => api.prevTrack()} aria-label={t('a11y.previous')}>

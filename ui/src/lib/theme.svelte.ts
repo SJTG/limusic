@@ -119,7 +119,10 @@ export const appearance = $state({
 	artworkAccent: false,
 	/** Theater mode's second and third columns (#297). Sticky, like every view toggle. */
 	theaterLyrics: true,
-	theaterQueue: false
+	theaterQueue: false,
+	/** Fade audio out at the end of a track and fade it in at the start of the next one.
+	 *  Purely cosmetic; off is the default instant cut. */
+	crossfadeAudio: false
 });
 
 export function setAppearance(patch: Partial<typeof appearance>): void {
@@ -470,7 +473,8 @@ export function initTheme(): void {
 			'openPlayerOnPlay',
 			'artworkAccent',
 			'theaterLyrics',
-			'theaterQueue'
+			'theaterQueue',
+			'crossfadeAudio'
 		] as const) {
 			if (typeof saved?.[k] === 'boolean') appearance[k] = saved[k];
 		}

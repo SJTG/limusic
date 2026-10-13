@@ -35,8 +35,10 @@
 		openMiniPlayer,
 		toggleMute,
 		toggleNowPlayingRating,
-		wheelVolume
+		wheelVolume,
+		audioCrossfade
 	} from '$lib/player.svelte';
+	import { appearance } from '$lib/theme.svelte';
 	import { thumb } from '$lib/thumb';
 	import ArtistLine from './ArtistLine.svelte';
 	import Marquee from './Marquee.svelte';
@@ -135,6 +137,18 @@
 		if (pressedControl || isControl(e.target)) return;
 		np.open = !np.open;
 	}
+
+	// Audio crossfade: watch for track changes and trigger a volume fade when the option is on.
+	let prevVideoId = $state<string | null | undefined>(playback.now?.videoId);
+	$effect(() => {
+		const currentId = playback.now?.videoId;
+		if (currentId !== prevVideoId) {
+			prevVideoId = currentId;
+			if (appearance.crossfadeAudio) {
+				audioCrossfade();
+			}
+		}
+	});
 </script>
 
 <!-- The chevron button below is the keyboard equivalent of clicking the bar, so the bar itself

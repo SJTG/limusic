@@ -442,6 +442,11 @@
 					desc: t('settings.themes.artwork_background_hint'),
 					control: artworkBgSwitch
 				})}
+				{@render row({
+					title: t('settings.themes.crossfade_audio'),
+					desc: t('settings.themes.crossfade_audio_hint'),
+					control: crossfadeAudioSwitch
+				})}
 			</div>
 		</section>
 	</div>
@@ -659,6 +664,10 @@
 {#snippet artworkBgSwitch()}<Switch
 		checked={appearance.artworkBackground}
 		onCheckedChange={(on) => setAppearance({ artworkBackground: on })}
+	/>{/snippet}
+{#snippet crossfadeAudioSwitch()}<Switch
+		checked={appearance.crossfadeAudio}
+		onCheckedChange={(on) => setAppearance({ crossfadeAudio: on })}
 	/>{/snippet}
 
 {#snippet fontSelect(key: FontKey, label: string)}
