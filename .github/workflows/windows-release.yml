@@ -84,7 +84,6 @@ jobs:
       # leave a writable token in .git/config for the rest of the job to find.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: ${{ steps.rel.outputs.tag }}
           fetch-depth: 0
           persist-credentials: false
 
