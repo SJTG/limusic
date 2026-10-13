@@ -17,7 +17,8 @@
 		Video01Icon,
 		VideoOffIcon,
 		VolumeHighIcon,
-		VolumeMute02Icon
+		VolumeMute02Icon,
+		AudioWave01Icon
 	} from '@hugeicons/core-free-icons';
 	import * as Tabs from '$lib/components/ui/tabs';
 	import * as api from '$lib/api';
@@ -41,7 +42,7 @@
 	} from '$lib/video.svelte';
 	import { artRoom } from '$lib/artroom.svelte';
 	import { typing } from '$lib/shortcuts';
-	import { appearance } from '$lib/theme.svelte';
+	import { appearance, setAppearance } from '$lib/theme.svelte';
 	import { t } from '$lib/i18n.svelte';
 	import { isMissingThumb, thumb } from '$lib/thumb';
 	import ArtistLine from './ArtistLine.svelte';
@@ -337,7 +338,11 @@
 		{#if !showVideo()}
 			{#if stage}
 				{#key playback.now?.videoId}
-					<div in:scale={{ start: 0.96, duration: 360, easing: cubicOut }} class="relative">
+					<div
+						in:scale={{ start: 0.96, duration: 450, easing: cubicOut }}
+						out:fade={{ duration: 250 }}
+						class="relative"
+					>
 						{@render cover()}
 						<!-- A hairline round the edge, so a cover that is mostly the background's colour
 						     still has one. A ring, not a shadow: the glow behind it is the depth. -->
@@ -347,7 +352,11 @@
 					</div>
 				{/key}
 			{:else}
-				{@render cover()}
+				{#key playback.now?.videoId}
+					<div in:fade={{ duration: 450, delay: 60 }} out:fade={{ duration: 250 }}>
+						{@render cover()}
+					</div>
+				{/key}
 			{/if}
 		{/if}
 	</button>
@@ -581,33 +590,37 @@
 						     scales with the picture, so it reads as part of it rather than a caption. -->
 						<div class="mt-6 flex items-start gap-3">
 							<div class="min-w-0 flex-1">
-								<h1
-									class="line-clamp-2 font-heading leading-[1.15] font-bold tracking-tight [overflow-wrap:anywhere]"
-									style="font-size:clamp(1.25rem, var(--side) * 0.06, 2rem)"
-									title={playback.now?.title}
-								>
-									{playback.now?.title ?? t('player.not_playing')}
-								</h1>
-								<ArtistLine
-									runs={playback.now?.artistRuns}
-									text={playback.now?.artists ?? ''}
-									class="mt-1.5 block text-base text-foreground/75"
-								/>
-								{#if album}
-									<!-- There is no page per song, so the album is where "more about
-									     this" goes. Local files have none to go to. -->
-									{#if albumId}
-										<button
-											type="button"
-											onclick={() => goto(`/album/${encodeURIComponent(albumId)}`)}
-											class="mt-0.5 block max-w-full cursor-pointer truncate text-left text-sm text-muted-foreground transition-colors hover:text-foreground hover:underline"
+								{#key playback.now?.videoId}
+									<div in:fade={{ duration: 450, delay: 100 }} out:fade={{ duration: 250 }}>
+										<h1
+											class="line-clamp-2 font-heading leading-[1.15] font-bold tracking-tight [overflow-wrap:anywhere]"
+											style="font-size:clamp(1.25rem, var(--side) * 0.06, 2rem)"
+											title={playback.now?.title}
 										>
-											{album}
-										</button>
-									{:else}
-										<p class="mt-0.5 truncate text-sm text-muted-foreground">{album}</p>
-									{/if}
-								{/if}
+											{playback.now?.title ?? t('player.not_playing')}
+										</h1>
+										<ArtistLine
+											runs={playback.now?.artistRuns}
+											text={playback.now?.artists ?? ''}
+											class="mt-1.5 block text-base text-foreground/75"
+										/>
+										{#if album}
+											<!-- There is no page per song, so the album is where "more about
+											     this" goes. Local files have none to go to. -->
+											{#if albumId}
+												<button
+													type="button"
+													onclick={() => goto(`/album/${encodeURIComponent(albumId)}`)}
+													class="mt-0.5 block max-w-full cursor-pointer truncate text-left text-sm text-muted-foreground transition-colors hover:text-foreground hover:underline"
+												>
+													{album}
+												</button>
+											{:else}
+												<p class="mt-0.5 truncate text-sm text-muted-foreground">{album}</p>
+											{/if}
+										{/if}
+									</div>
+								{/key}
 							</div>
 							<!-- Like, and the same ⋮ menu as the player bar's (save to playlist, radio,
 							     go to, tempo). Right-clicking the picture or the title opens it too. -->
@@ -632,6 +645,17 @@
 													: ''}"
 											/>
 										</span>
+									</button>
+								{/if}
+								{#if playback.now}
+									<button
+										type="button"
+										onclick={() => setAppearance({ crossfadeAudio: !appearance.crossfadeAudio })}
+										class="flex size-10 cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-foreground/10 {appearance.crossfadeAudio ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}"
+										aria-label={t('settings.themes.toggle_crossfade_audio')}
+										title={t('settings.themes.toggle_crossfade_audio')}
+									>
+										<HugeiconsIcon icon={AudioWave01Icon} class="h-5 w-5" />
 									</button>
 								{/if}
 								{#if currentSong}

@@ -960,12 +960,11 @@ export function openMiniPlayer() {
 // than sluggish, and it never dips below 2 so the user doesn't think the player froze.
 
 let crossfadeRaf: number | null = null;
-const CROSSFADE_DURATION_MS = 700;
+const CROSSFADE_DURATION_MS = 850;
 
 /**
- * Fade the volume in from 0 to the user's saved level over ~700 ms.
- * Called by MiniPlayer (and PlayerBar) when a track change is detected and
- * `appearance.crossfadeAudio` is true.
+ * Fade the volume in from 0 to the user's saved level over ~850 ms.
+ * Called when a track change is detected and `appearance.crossfadeAudio` is true.
  */
 export function audioCrossfade(): void {
 	// Cancel any in-progress fade first (fast track skipping).
@@ -983,8 +982,9 @@ export function audioCrossfade(): void {
 	function step() {
 		const elapsed = performance.now() - start;
 		const t = Math.min(1, elapsed / CROSSFADE_DURATION_MS);
-		// Ease-out quad so the initial rise is fast and it glides to the target.
-		const eased = 1 - (1 - t) * (1 - t);
+		// Smooth cubic ease-out curve for natural and soft transition
+		const p = 1 - t;
+		const eased = 1 - p * p * p;
 		const v = Math.round(eased * target);
 		api.setVolume(v);
 		if (t < 1) {

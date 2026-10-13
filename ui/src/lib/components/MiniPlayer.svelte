@@ -27,7 +27,8 @@
 		VolumeHighIcon,
 		VolumeMute02Icon,
 		MinimizeIcon,
-		ArrowExpand01Icon
+		ArrowExpand01Icon,
+		AudioWave01Icon
 	} from '@hugeicons/core-free-icons';
 	import { fade } from 'svelte/transition';
 	import * as api from '$lib/api';
@@ -41,7 +42,7 @@
 		wheelVolume,
 		audioCrossfade
 	} from '$lib/player.svelte';
-	import { appearance } from '$lib/theme.svelte';
+	import { appearance, setAppearance } from '$lib/theme.svelte';
 	import { thumb } from '$lib/thumb';
 	import LyricsView from './LyricsView.svelte';
 	import Marquee from './Marquee.svelte';
@@ -204,9 +205,20 @@
 				<button class={panelBtn} onclick={() => api.nextTrack()} aria-label={t('a11y.next')}>
 					<HugeiconsIcon icon={NextIcon} class="h-4 w-4" />
 				</button>
+				<button
+					class="{panelBtn} ml-auto"
+					onclick={() => setAppearance({ crossfadeAudio: !appearance.crossfadeAudio })}
+					aria-label={t('settings.themes.toggle_crossfade_audio')}
+					title={t('settings.themes.toggle_crossfade_audio')}
+				>
+					<HugeiconsIcon
+						icon={AudioWave01Icon}
+						class="h-4 w-4 {appearance.crossfadeAudio ? 'text-primary' : 'text-muted-foreground'}"
+					/>
+				</button>
 				{#if likeable}
 					<button
-						class="{panelBtn} ml-auto text-muted-foreground"
+						class="{panelBtn} text-muted-foreground"
 						onclick={toggleLike}
 						aria-label={playback.rating === 'like' ? t('player.remove_from_liked') : t('player.save_to_liked')}
 					>
@@ -327,6 +339,17 @@
 				</div>
 				<!-- Between volume and the ratings, never left of volume: the slider grows leftwards out
 				     of the volume icon, so everything to its right holds still while it is out. -->
+				<button
+					class={artBtn}
+					onclick={() => setAppearance({ crossfadeAudio: !appearance.crossfadeAudio })}
+					aria-label={t('settings.themes.toggle_crossfade_audio')}
+					title={t('settings.themes.toggle_crossfade_audio')}
+				>
+					<HugeiconsIcon
+						icon={AudioWave01Icon}
+						class="h-4 w-4 {appearance.crossfadeAudio ? 'text-primary' : 'text-white/70'}"
+					/>
+				</button>
 				<button
 					class={artBtn}
 					onclick={() => setCompact(true)}

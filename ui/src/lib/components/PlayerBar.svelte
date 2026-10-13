@@ -19,7 +19,8 @@
 		MinimizeScreenIcon,
 		MusicNote01Icon,
 		ArrowUp01Icon,
-		ArrowDown01Icon
+		ArrowDown01Icon,
+		AudioWave01Icon
 	} from '@hugeicons/core-free-icons';
 	import { fade } from 'svelte/transition';
 	import { goto } from '$app/navigation';
@@ -38,7 +39,7 @@
 		wheelVolume,
 		audioCrossfade
 	} from '$lib/player.svelte';
-	import { appearance } from '$lib/theme.svelte';
+	import { appearance, setAppearance } from '$lib/theme.svelte';
 	import { thumb } from '$lib/thumb';
 	import ArtistLine from './ArtistLine.svelte';
 	import Marquee from './Marquee.svelte';
@@ -169,55 +170,62 @@
 					alt=""
 					style="max-width:none"
 					class="h-12 w-12 shrink-0 rounded-lg object-cover"
-					in:fade={{ duration: 250 }}
+					in:fade={{ duration: 450, delay: 100 }}
+					out:fade={{ duration: 300 }}
 				/>
 			{:else}
 				<div
 					class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground/50"
+					in:fade={{ duration: 450, delay: 100 }}
+					out:fade={{ duration: 300 }}
 				>
 					<HugeiconsIcon icon={MusicNote01Icon} class="h-5 w-5" />
 				</div>
 			{/if}
 		{/key}
 		<div class="min-w-0">
-			<div class="flex items-center gap-1.5">
-				{#snippet title()}
-					<Marquee
-						text={playback.now?.title ?? t('player.not_playing')}
-						class="text-sm font-medium"
+			{#key playback.now?.videoId}
+				<div in:fade={{ duration: 450, delay: 80 }} out:fade={{ duration: 250 }}>
+					<div class="flex items-center gap-1.5">
+						{#snippet title()}
+							<Marquee
+								text={playback.now?.title ?? t('player.not_playing')}
+								class="text-sm font-medium"
+							/>
+						{/snippet}
+						<!-- The button wraps the whole marquee rather than the text inside it: mid-scroll the
+						     visible half of the line is the inert trailing copy, so a button around the text
+						     itself is only clickable while the original copy is on screen. The underline goes
+						     on the spans, not the button: text-decoration doesn't reach the trailing copy,
+						     which is absolutely positioned. -->
+						{#if albumId}
+							<button
+								class="min-w-0 cursor-pointer text-left hover:[&_span]:underline"
+								onclick={() => goto(`/album/${encodeURIComponent(albumId)}`)}
+							>
+								{@render title()}
+							</button>
+						{:else}
+							{@render title()}
+						{/if}
+						{#if autoplayTrack}
+							<span
+								class="shrink-0 text-muted-foreground"
+								title={t('player.autoplay_notice')}
+								in:fade={{ duration: 200 }}
+							>
+								<HugeiconsIcon icon={InfinityIcon} class="h-3.5 w-3.5" />
+							</span>
+						{/if}
+					</div>
+					<ArtistLine
+						runs={playback.now?.artistRuns}
+						text={playback.now?.artists ?? ''}
+						marquee
+						class="block max-w-full text-xs text-muted-foreground"
 					/>
-				{/snippet}
-				<!-- The button wraps the whole marquee rather than the text inside it: mid-scroll the
-				     visible half of the line is the inert trailing copy, so a button around the text
-				     itself is only clickable while the original copy is on screen. The underline goes
-				     on the spans, not the button: text-decoration doesn't reach the trailing copy,
-				     which is absolutely positioned. -->
-				{#if albumId}
-					<button
-						class="min-w-0 cursor-pointer text-left hover:[&_span]:underline"
-						onclick={() => goto(`/album/${encodeURIComponent(albumId)}`)}
-					>
-						{@render title()}
-					</button>
-				{:else}
-					{@render title()}
-				{/if}
-				{#if autoplayTrack}
-					<span
-						class="shrink-0 text-muted-foreground"
-						title={t('player.autoplay_notice')}
-						in:fade={{ duration: 200 }}
-					>
-						<HugeiconsIcon icon={InfinityIcon} class="h-3.5 w-3.5" />
-					</span>
-				{/if}
-			</div>
-			<ArtistLine
-				runs={playback.now?.artistRuns}
-				text={playback.now?.artists ?? ''}
-				marquee
-				class="block max-w-full text-xs text-muted-foreground"
-			/>
+				</div>
+			{/key}
 		</div>
 		{#if playback.now}
 			<div class="flex items-center">
@@ -389,6 +397,18 @@
 		</div>
 		<!-- One cluster, so they sit tighter to each other than to the volume slider. -->
 		<div class="flex items-center gap-0.5">
+			<Button
+				variant={appearance.crossfadeAudio ? 'secondary' : 'ghost'}
+				size="icon-sm"
+				onclick={() => setAppearance({ crossfadeAudio: !appearance.crossfadeAudio })}
+				aria-label={t('settings.themes.toggle_crossfade_audio')}
+				title={t('settings.themes.toggle_crossfade_audio')}
+			>
+				<HugeiconsIcon
+					icon={AudioWave01Icon}
+					class="h-5 w-5 {appearance.crossfadeAudio ? 'text-primary' : 'text-muted-foreground'}"
+				/>
+			</Button>
 			<Button variant="ghost" size="icon-sm" onclick={openMiniPlayer} aria-label={t('player.mini_player')}>
 				<HugeiconsIcon icon={MinimizeScreenIcon} class="h-5 w-5" />
 			</Button>
