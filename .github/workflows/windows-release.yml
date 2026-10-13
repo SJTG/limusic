@@ -309,7 +309,13 @@ jobs:
           # A release candidate builds the NSIS installer only. The updater never uses the MSI, and
           # WiX refuses a version whose prerelease suffix isn't numeric, which -rc.1 isn't.
           BUNDLES=(); [ "$PRERELEASE" = false ] || BUNDLES=(--bundles nsis)
-          tauri build "${BUNDLES[@]}" --config '{"build":{"beforeBuildCommand":""}}'   # → target/release/bundle/{nsis,msi}/
+          CONFIG='{"build":{"beforeBuildCommand":""}}'
+          if [ -z "${TAURI_SIGNING_PRIVATE_KEY:-}" ]; then
+            unset TAURI_SIGNING_PRIVATE_KEY
+            unset TAURI_SIGNING_PRIVATE_KEY_PASSWORD
+            CONFIG='{"build":{"beforeBuildCommand":""},"bundle":{"createUpdaterArtifacts":false}}'
+          fi
+          tauri build "${BUNDLES[@]}" --config "$CONFIG"   # → target/release/bundle/{nsis,msi}/
 
       - name: Dry run — built and signed, attaching nothing
         if: ${{ inputs.dry_run }}
