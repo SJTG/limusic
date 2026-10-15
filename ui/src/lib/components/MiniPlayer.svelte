@@ -30,7 +30,7 @@
 		ArrowExpand01Icon,
 		AudioWave01Icon
 	} from '@hugeicons/core-free-icons';
-	import { fade } from 'svelte/transition';
+	import { trackfade } from '$lib/trackfade';
 	import * as api from '$lib/api';
 	import {
 		playback,
@@ -143,14 +143,17 @@
 		<!-- Compact: what's playing and the transport, nothing else. The cover runs edge to edge on the
 		     left and dissolves into the card like the full widget's, and the text beside it sits on the
 		     card itself, in theme colours. -->
-		{#key now?.videoId}
+		<!-- Thumbnail: trackfade gives GPU-composited opacity crossfade on track change.
+		     display:contents so the wrapper generates no box of its own. -->
+		<div
+			use:trackfade={now?.videoId}
+			style="will-change:opacity;contain:layout style paint;display:contents"
+		>
 			{#if now?.thumbnail}
 				<!-- 480, same as the full layout: switching is a cache hit, not a second download. -->
 				<img
 					src={thumb(now.thumbnail, 480)}
 					alt=""
-					in:fade={{ duration: 350, delay: 100 }}
-					out:fade={{ duration: 250 }}
 					class="pointer-events-none absolute inset-y-0 left-0 h-full w-[88px] object-cover"
 					style="mask-image:linear-gradient(to right,#000 0,#000 65%,transparent 100%);-webkit-mask-image:linear-gradient(to right,#000 0,#000 65%,transparent 100%)"
 				/>
@@ -158,13 +161,11 @@
 				<div
 					class="pointer-events-none absolute inset-y-0 left-0 flex w-[88px] items-center justify-center bg-muted text-muted-foreground/50"
 					style="mask-image:linear-gradient(to right,#000 0,#000 65%,transparent 100%);-webkit-mask-image:linear-gradient(to right,#000 0,#000 65%,transparent 100%)"
-					in:fade={{ duration: 350, delay: 100 }}
-					out:fade={{ duration: 250 }}
 				>
 					<HugeiconsIcon icon={MusicNote01Icon} class="h-6 w-6" />
 				</div>
 			{/if}
-		{/key}
+		</div>
 
 		<button
 			class="absolute right-1.5 top-1.5 z-10 flex size-6 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
@@ -178,19 +179,16 @@
 		<div class="relative flex min-w-0 flex-1 flex-col justify-center py-2 pl-[96px] pr-2.5">
 			<!-- mr-6 keeps the title clear of the expand button. A margin, not padding: Marquee measures
 			     its box with clientWidth, which counts padding as room to spare. -->
-			{#key now?.videoId}
-				<div
-					class="contents"
-					in:fade={{ duration: 350, delay: 80 }}
-					out:fade={{ duration: 220 }}
-				>
-					<Marquee
-						text={now?.title ?? t('player.not_playing')}
-						class="mr-6 font-heading text-sm font-semibold leading-tight"
-					/>
-					<Marquee text={now?.artists ?? ''} class="text-xs leading-snug text-muted-foreground" />
-				</div>
-			{/key}
+			<div
+				use:trackfade={now?.videoId}
+				style="will-change:opacity;contain:layout style paint;min-width:0"
+			>
+				<Marquee
+					text={now?.title ?? t('player.not_playing')}
+					class="mr-6 font-heading text-sm font-semibold leading-tight"
+				/>
+				<Marquee text={now?.artists ?? ''} class="text-xs leading-snug text-muted-foreground" />
+			</div>
 			<div class="mt-1 flex items-center gap-1">
 				<button class={panelBtn} onclick={() => api.prevTrack()} aria-label={t('a11y.previous')}>
 					<HugeiconsIcon icon={PreviousIcon} class="h-4 w-4" />
@@ -255,20 +253,21 @@
 			style="transform:scaleX({progress})"
 		></div>
 	{:else}
-		<!-- Cover art under the left half, masked so it dissolves into the card instead of ending on a
-		     seam. Keyed so a track change cross-fades. -->
-		{#key now?.videoId}
+		<!-- Cover art: trackfade gives GPU-composited opacity crossfade on track change.
+		     display:contents so the wrapper generates no box. -->
+		<div
+			use:trackfade={now?.videoId}
+			style="will-change:opacity;contain:layout style paint;display:contents"
+		>
 			{#if now?.thumbnail}
 				<img
 					src={thumb(now.thumbnail, 480)}
 					alt=""
-					in:fade={{ duration: 400, delay: 120 }}
-					out:fade={{ duration: 280 }}
 					class="pointer-events-none absolute inset-y-0 left-0 h-full w-[56%] object-cover"
 					style="mask-image:linear-gradient(to right,#000 0,#000 70%,transparent 100%);-webkit-mask-image:linear-gradient(to right,#000 0,#000 70%,transparent 100%)"
 				/>
 			{/if}
-		{/key}
+		</div>
 		<!-- Enough shade to keep white text readable over a bright cover, following the same fade so it
 		     never draws an edge of its own. The art stays plainly visible under it. -->
 		<div
@@ -391,19 +390,17 @@
 				{/if}
 			</div>
 
-			{#key now?.videoId}
-				<div
-					class="min-w-0 [text-shadow:0_1px_4px_rgb(0_0_0/0.7)]"
-					in:fade={{ duration: 350, delay: 100 }}
-					out:fade={{ duration: 220 }}
-				>
-					<Marquee
-						text={now?.title ?? t('player.not_playing')}
-						class="font-heading text-[0.95rem] font-semibold leading-tight text-white"
-					/>
-					<Marquee text={now?.artists ?? ''} class="text-xs leading-snug text-white/75" />
-				</div>
-			{/key}
+			<div
+				use:trackfade={now?.videoId}
+				style="will-change:opacity;contain:layout style paint;min-width:0"
+				class="[text-shadow:0_1px_4px_rgb(0_0_0/0.7)]"
+			>
+				<Marquee
+					text={now?.title ?? t('player.not_playing')}
+					class="font-heading text-[0.95rem] font-semibold leading-tight text-white"
+				/>
+				<Marquee text={now?.artists ?? ''} class="text-xs leading-snug text-white/75" />
+			</div>
 
 			<div class="flex items-center gap-2">
 				<button class={artBtn} onclick={() => api.prevTrack()} aria-label={t('a11y.previous')}>

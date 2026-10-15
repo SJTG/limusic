@@ -24,6 +24,7 @@
 	} from '@hugeicons/core-free-icons';
 	import { fade } from 'svelte/transition';
 	import { goto } from '$app/navigation';
+	import { trackfade } from '$lib/trackfade';
 	import { Button } from '$lib/components/ui/button';
 	import * as api from '$lib/api';
 	import {
@@ -163,29 +164,31 @@
 	<!-- Now playing. data-ctx: right-clicking the cover or the title opens the ⋮ menu for the track
 	     that's playing (not the buttons beside them — those keep their own meaning). -->
 	<div class="flex min-w-0 flex-1 items-center gap-3" data-ctx>
-		{#key playback.now?.videoId}
+		<!-- Thumbnail wrapper: trackfade gives GPU-composited opacity crossfade on track change. -->
+		<div
+			use:trackfade={playback.now?.videoId}
+			style="will-change:opacity;contain:layout style paint;display:contents"
+		>
 			{#if playback.now?.thumbnail}
 				<img
 					src={thumb(playback.now.thumbnail, 120)}
 					alt=""
 					style="max-width:none"
 					class="h-12 w-12 shrink-0 rounded-lg object-cover"
-					in:fade={{ duration: 450, delay: 100 }}
-					out:fade={{ duration: 300 }}
 				/>
 			{:else}
 				<div
 					class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground/50"
-					in:fade={{ duration: 450, delay: 100 }}
-					out:fade={{ duration: 300 }}
 				>
 					<HugeiconsIcon icon={MusicNote01Icon} class="h-5 w-5" />
 				</div>
 			{/if}
-		{/key}
+		</div>
 		<div class="min-w-0">
-			{#key playback.now?.videoId}
-				<div in:fade={{ duration: 450, delay: 80 }} out:fade={{ duration: 250 }}>
+			<div
+				use:trackfade={playback.now?.videoId}
+				style="will-change:opacity;contain:layout style paint"
+			>
 					<div class="flex items-center gap-1.5">
 						{#snippet title()}
 							<Marquee
@@ -225,7 +228,6 @@
 						class="block max-w-full text-xs text-muted-foreground"
 					/>
 				</div>
-			{/key}
 		</div>
 		{#if playback.now}
 			<div class="flex items-center">

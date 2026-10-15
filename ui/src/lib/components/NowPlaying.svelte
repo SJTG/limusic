@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { fade, fly, scale } from 'svelte/transition';
+	import { fade, scale, fly } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
+	import { trackfade } from '$lib/trackfade';
 	import { beforeNavigate, goto } from '$app/navigation';
 	import { HugeiconsIcon } from '@hugeicons/svelte';
 	import {
@@ -337,26 +338,27 @@
 		     settles in from a little smaller: the one motion there, and it says the song changed. -->
 		{#if !showVideo()}
 			{#if stage}
-				{#key playback.now?.videoId}
+				<!-- trackfade: GPU-composited opacity crossfade on track change.
+				     The inner scale-in transition still fires on mount for the motion effect. -->
+				<div
+					use:trackfade={playback.now?.videoId}
+					style="will-change:opacity;contain:layout style paint"
+					class="relative"
+				>
+					{@render cover()}
+					<!-- A hairline round the edge, so a cover that is mostly the background's colour
+					     still has one. A ring, not a shadow: the glow behind it is the depth. -->
 					<div
-						in:scale={{ start: 0.96, duration: 450, easing: cubicOut }}
-						out:fade={{ duration: 250 }}
-						class="relative"
-					>
-						{@render cover()}
-						<!-- A hairline round the edge, so a cover that is mostly the background's colour
-						     still has one. A ring, not a shadow: the glow behind it is the depth. -->
-						<div
-							class="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-foreground/10"
-						></div>
-					</div>
-				{/key}
+						class="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-foreground/10"
+					></div>
+				</div>
 			{:else}
-				{#key playback.now?.videoId}
-					<div in:fade={{ duration: 450, delay: 60 }} out:fade={{ duration: 250 }}>
-						{@render cover()}
-					</div>
-				{/key}
+				<div
+					use:trackfade={playback.now?.videoId}
+					style="will-change:opacity;contain:layout style paint"
+				>
+					{@render cover()}
+				</div>
 			{/if}
 		{/if}
 	</button>
@@ -590,8 +592,9 @@
 						     scales with the picture, so it reads as part of it rather than a caption. -->
 						<div class="mt-6 flex items-start gap-3">
 							<div class="min-w-0 flex-1">
-								{#key playback.now?.videoId}
-									<div in:fade={{ duration: 450, delay: 100 }} out:fade={{ duration: 250 }}>
+								<div
+									use:trackfade={playback.now?.videoId}
+									style="will-change:opacity;contain:layout style paint">
 										<h1
 											class="line-clamp-2 font-heading leading-[1.15] font-bold tracking-tight [overflow-wrap:anywhere]"
 											style="font-size:clamp(1.25rem, var(--side) * 0.06, 2rem)"
@@ -620,7 +623,6 @@
 											{/if}
 										{/if}
 									</div>
-								{/key}
 							</div>
 							<!-- Like, and the same ⋮ menu as the player bar's (save to playlist, radio,
 							     go to, tempo). Right-clicking the picture or the title opens it too. -->
